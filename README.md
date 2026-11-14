@@ -1,13 +1,11 @@
-<<<<<<< HEAD
-=======
+
 # Cost
 
->>>>>>> 33100c092024c63f131075d60b3cc4960617ddde
 # HishabNikash (হিসাবনিকাশ) - Personal Expense & Loan Manager
 
 A fully functional, aesthetic, modern, and mobile/web/desktop-responsive **Personal Expense & Loan Manager** web application built with HTML5, Tailwind CSS, and vanilla JavaScript.
 
-Designed specifically for personal cash flow management with Bangladeshi financial context (BDT `৳` currency, bKash, Nagad, Bank accounts, cash flow, and informal loans/debts with friends, family, and colleagues).
+Designed specifically for personal cash flow management with a Bangladeshi financial context (BDT `৳` currency, bKash, Nagad, Bank accounts, cash flow, and informal loans/debts with friends, family, and colleagues).
 
 ---
 
@@ -21,12 +19,12 @@ Designed specifically for personal cash flow management with Bangladeshi financi
   - 🟠 **Borrowed Money (কারো কাছ থেকে ঋণ নেওয়া)**: Money borrowed from someone (Liability debt, + to wallet, tracked in debt ledger).
   - 🔄 **Settlement Repayments**: Automatically records repayments and updates wallet and debt balances.
 - **BDT (৳) Currency Input**: With quick preset increment buttons (`+500`, `+1,000`, `+5,000`).
-- **Person / Counterparty Tracking**: Required when lending or borrowing with autocomplete suggestions from previously recorded people.
+- **Person / Counterparty Tracking**: Required when lending or borrowing, with autocomplete suggestions from previously recorded people.
 - **Source / Destination**: Specific details on where money went or came from.
 - **Payment Method / Wallet**: Cash (নগদ), bKash (বিকাশ), Nagad (নগদ), Bank Account (ব্যাংক), Credit Card (ক্রেডিট কার্ড).
 - **15+ Categorized Icons**: Food, Transport, Rent, Utility, Recharge, Shopping, Medical, Education, Salary, Freelance, Gift, Loan, etc.
 - **Due / Settlement Date**: Optional target repayment date with automatic overdue notifications.
-- **Date & Time Picker**: Defaults to current date and time with a 1-click "Set to Now" shortcut.
+- **Date & Time Picker**: Defaults to the current date and time with a 1-click "Set to Now" shortcut.
 - **Notes & Memo**: Add optional context for each transaction.
 
 ### 2. Dashboard & Financial Overview
@@ -53,7 +51,7 @@ Designed specifically for personal cash flow management with Bangladeshi financi
 - **1-Click Quick Settle / Repay Modal**:
   - Record full or partial repayments with custom amounts.
   - Choose which wallet (Cash, bKash, Bank, etc.) received or paid the money.
-  - Automatically updates the main wallet balance and reduces the debt.
+  - Automatically update the main wallet balance and reduce the debt.
   - Celebratory confetti animation upon settling debts! 🎉
 - **Counterparty Statement & History**:
   - Click "History" on any person card to view their complete statement of loans and repayments.
@@ -101,7 +99,7 @@ Designed specifically for personal cash flow management with Bangladeshi financi
 This web application has **zero dependencies to build or compile**. Simply open `index.html` in any web browser:
 
 1. Double-click `index.html` or right-click and choose **Open with Google Chrome / Microsoft Edge / Firefox / Safari**.
-2. Alternatively, serve via any local web server (e.g. VS Code Live Server or Python `python -m http.server 8000`).
+2. Alternatively, serve via any local web server (e.g., VS Code Live Server or Python `python -m http.server 8000`).
 
 ---
 
