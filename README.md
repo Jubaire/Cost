@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# Cost
+
+>>>>>>> 33100c092024c63f131075d60b3cc4960617ddde
 # HishabNikash (হিসাবনিকাশ) - Personal Expense & Loan Manager
 
 A fully functional, aesthetic, modern, and mobile/web/desktop-responsive **Personal Expense & Loan Manager** web application built with HTML5, Tailwind CSS, and vanilla JavaScript.
