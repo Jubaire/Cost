@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HishabNikash (হিসাবনিকাশ) - Personal Expense & Loan Manager</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Hind Siliguri', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Inter & Hind Siliguri (Bengali) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <!-- Custom Styles (Matte, no neon effects) -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- PWA & Mobile App Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#1E293B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-150 antialiased pb-20 md:pb-8">
+
+  <!-- Top Navigation / Brand Header -->
+  <header class="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- App Logo & Title -->
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-slate-900 dark:bg-blue-600 text-white flex items-center justify-center text-base shadow-sm">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+                হিসাবনিকাশ
+              </span>
+              <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                HishabNikash
+              </span>
+            </div>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 hidden sm:block">
+              ব্যক্তিগত আয়-ব্যয় ও ধার-দেনার খাতা • Personal Expense & Loan Ledger
+            </p>
+          </div>
+        </div>
+
+        <!-- Top Right Actions -->
+        <div class="flex items-center gap-2 sm:gap-2.5">
+          <!-- Global Period Filter (Desktop) -->
+          <div class="relative hidden sm:block">
+            <select 
+              id="dashboardPeriodSelect" 
+              class="appearance-none bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-1.5 pl-3 pr-7 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700/80 transition focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="this_month">This Month (চলতি মাস)</option>
+              <option value="last_30_days">Last 30 Days (গত ৩০ দিন)</option>
+              <option value="this_year">This Year (চলতি বছর)</option>
+              <option value="all_time">All Time (সব সময়)</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+              <i class="fa-solid fa-chevron-down text-[9px]"></i>
+            </div>
+          </div>
+
+          <!-- Data Backup & CSV Export Button -->
+          <button 
+            type="button" 
+            onclick="window.app.openBackupModal()" 
+            class="p-2 sm:px-3 sm:py-1.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5 text-xs font-medium border border-slate-200 dark:border-slate-700"
+            title="Data Backup & CSV Export"
+          >
+            <i class="fa-solid fa-database text-slate-500 dark:text-slate-400"></i>
+            <span class="hidden md:inline">Backup & CSV</span>
+          </button>
+
+          <!-- Dark/Light Theme Toggle -->
+          <button 
+            type="button" 
+            class="theme-toggle-btn p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-200 dark:border-slate-700 text-xs"
+            title="Toggle Dark/Light Mode"
+          >
+            <i class="fa-solid fa-moon dark:hidden"></i>
+            <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+          </button>
+
+          <!-- Header CTA: + New Transaction Button -->
+          <button 
+            type="button" 
+            onclick="window.transactionManager.openAddModal()"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl shadow-sm active:scale-95 transition-all flex items-center gap-1.5"
+            title="Add New Transaction"
+          >
+            <i class="fa-solid fa-plus text-xs"></i>
+            <span><span class="hidden sm:inline">New </span>Transaction</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Desktop Navigation Tabs -->
+    <div class="hidden md:block border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex space-x-2 py-2">
+          <button data-nav-target="dashboard" class="desktop-nav-link px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 transition-all flex items-center gap-2 shadow-sm">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Dashboard (ড্যাশবোর্ড)</span>
+          </button>
+          
+          <button data-nav-target="loans" class="desktop-nav-link px-3.5 py-1.5 text-xs sm:text-sm font-medium rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-handshake-simple"></i>
+            <span>Loan & Debt Ledger (ধার-দেনা)</span>
+            <span id="loanActiveCountBadge" class="hidden px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">0</span>
+          </button>
+
+          <button data-nav-target="transactions" class="desktop-nav-link px-3.5 py-1.5 text-xs sm:text-sm font-medium rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-receipt"></i>
+            <span>All Transactions (সকল লেনদেন)</span>
+          </button>
+
+          <button data-nav-target="wallets" class="desktop-nav-link px-3.5 py-1.5 text-xs sm:text-sm font-medium rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Wallets (ওয়ালেট ব্যালেন্স)</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: DASHBOARD & OVERVIEW SUMMARY -->
+    <!-- ========================================== -->
+    <section id="tab-dashboard" class="tab-view space-y-5">
+      
+      <!-- Top Overview Banner with PROMINENT + NEW TRANSACTION BUTTON -->
+      <div class="bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+              আর্থিক সারাংশ • Overview
+            </h2>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold active-period-label">
+              This Month
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Real-time cash flow, personal debts & receivables balance at a glance.
+          </p>
+        </div>
+
+        <!-- Banner Right Controls: Mobile Period Selector, Net Savings, and + NEW TRANSACTION CTA -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <!-- Mobile Period Selector -->
+          <div class="sm:hidden w-full">
+            <select 
+              id="dashboardPeriodSelectMobile" 
+              class="w-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl py-2 px-3 text-xs font-semibold text-slate-800 dark:text-slate-200"
+            >
+              <option value="this_month">This Month (চলতি মাস)</option>
+              <option value="last_30_days">Last 30 Days (গত ৩০ দিন)</option>
+              <option value="this_year">This Year (চলতি বছর)</option>
+              <option value="all_time">All Time (সব সময়)</option>
+            </select>
+          </div>
+
+          <!-- Net Period Savings Badge -->
+          <div class="bg-slate-50 dark:bg-slate-750 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+            <span class="text-slate-400 block text-[10px]">Net Cash Flow:</span>
+            <span id="statNetPeriodSavings" class="font-bold text-emerald-600 dark:text-emerald-400">+৳ 0</span>
+          </div>
+
+          <!-- Direct Web Dashboard + New Transaction Button -->
+          <button 
+            type="button" 
+            onclick="window.transactionManager.openAddModal()"
+            class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all flex items-center gap-1.5 active:scale-95"
+            title="Create New Transaction"
+          >
+            <i class="fa-solid fa-plus text-xs"></i>
+            <span>+ New Transaction</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Top Summary Cards Grid (Mobile 2 cols with Net Balance Hero, Desktop 5 cols) -->
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+        
+        <!-- Card 1: Net Wallet Balance (Spans 2 cols on mobile for hero prominence) -->
+        <div class="col-span-2 lg:col-span-1 bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm card-hover flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Net Balance (হাতে জমা)</span>
+            <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-wallet"></i>
+            </div>
+          </div>
+          <div>
+            <h3 id="statNetWalletBalance" class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">৳ 0</h3>
+            <span class="text-[10px] text-slate-400 mt-0.5 block">Cash + bKash + Bank etc.</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Total Income -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm card-hover flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Income (আয়)</span>
+            <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-arrow-down-left"></i>
+            </div>
+          </div>
+          <div>
+            <h3 id="statTotalIncome" class="text-lg sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">৳ 0</h3>
+            <span class="text-[10px] text-slate-400 mt-0.5 block active-period-label">This Month</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Total Expenses -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm card-hover flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Expense (খরচ)</span>
+            <div class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-arrow-up-right"></i>
+            </div>
+          </div>
+          <div>
+            <h3 id="statTotalExpense" class="text-lg sm:text-2xl font-extrabold text-rose-600 dark:text-rose-400 tracking-tight">৳ 0</h3>
+            <span class="text-[10px] text-slate-400 mt-0.5 block active-period-label">This Month</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Total Lent / To Collect -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm card-hover flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">To Collect (পাওনা)</span>
+            <div class="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+          </div>
+          <div>
+            <h3 id="statTotalToCollect" class="text-lg sm:text-2xl font-extrabold text-blue-600 dark:text-blue-400 tracking-tight">৳ 0</h3>
+            <span class="text-[10px] text-slate-400 mt-0.5 block">Lent to others (বাকি আছে)</span>
+          </div>
+        </div>
+
+        <!-- Card 5: Total Borrowed / To Pay Back -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm card-hover flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">To Pay Back (দেনা)</span>
+            <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-handshake-angle"></i>
+            </div>
+          </div>
+          <div>
+            <h3 id="statTotalToRepay" class="text-lg sm:text-2xl font-extrabold text-amber-600 dark:text-amber-400 tracking-tight">৳ 0</h3>
+            <span class="text-[10px] text-slate-400 mt-0.5 block">Borrowed debts (শোধ করতে হবে)</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        <!-- Left: Expenses by Category (Doughnut Chart) -->
+        <div class="lg:col-span-5 bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="font-bold text-slate-900 dark:text-white text-sm sm:text-base flex items-center gap-2">
+                <i class="fa-solid fa-chart-pie text-rose-500 text-xs"></i>
+                <span>Expenses by Category (খাতভিত্তিক ব্যয়)</span>
+              </h3>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">Category-wise breakdown</p>
+            </div>
+            <span id="expenseChartCenterTotal" class="text-xs font-extrabold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200">
+              ৳ 0
+            </span>
+          </div>
+
+          <div class="relative h-60 sm:h-68 w-full flex items-center justify-center">
+            <canvas id="expenseCategoryChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Right: Cash Flow & Loan Distribution (Bar Chart) -->
+        <div class="lg:col-span-7 bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="font-bold text-slate-900 dark:text-white text-sm sm:text-base flex items-center gap-2">
+                <i class="fa-solid fa-chart-column text-blue-600 text-xs"></i>
+                <span>Cash Flow & Loan Distribution (আর্থিক লেনদেন)</span>
+              </h3>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">Income vs Expense vs Lent vs Borrowed</p>
+            </div>
+            <span class="text-xs font-semibold text-slate-400 active-period-label">This Month</span>
+          </div>
+
+          <div class="relative h-60 sm:h-68 w-full">
+            <canvas id="cashflowBarChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Dashboard Widgets: Recent Transactions & Upcoming Due Dates -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        <!-- Recent Transactions -->
+        <div class="lg:col-span-7 bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-slate-900 dark:text-white text-sm sm:text-base flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-slate-500 text-xs"></i>
+                <span>Recent Transactions (সাম্প্রতিক লেনদেন)</span>
+              </h3>
+              <div class="flex items-center gap-3">
+                <button 
+                  type="button"
+                  onclick="window.transactionManager.openAddModal()" 
+                  class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                >
+                  <i class="fa-solid fa-plus text-[10px]"></i> Add
+                </button>
+                <button 
+                  type="button"
+                  onclick="window.app.switchTab('transactions')" 
+                  class="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white flex items-center gap-1"
+                >
+                  View All <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </button>
+              </div>
+            </div>
+
+            <div id="dashboardRecentTxnList" class="divide-y divide-slate-100 dark:divide-slate-800">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Upcoming & Overdue Loan Due Dates -->
+        <div class="lg:col-span-5 bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-slate-900 dark:text-white text-sm sm:text-base flex items-center gap-2">
+                <i class="fa-solid fa-calendar-check text-slate-500 text-xs"></i>
+                <span>Loan Due Alerts (ধার পরিশোধের তাগাদা)</span>
+              </h3>
+              <button 
+                type="button"
+                onclick="window.app.switchTab('loans')" 
+                class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+              >
+                Ledger <i class="fa-solid fa-arrow-right text-[10px]"></i>
+              </button>
+            </div>
+
+            <div id="dashboardDueAlertsList" class="space-y-2.5">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Wallets Quick View -->
+      <div>
+        <div class="flex items-center justify-between mb-2.5">
+          <h3 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-wallet text-slate-400 text-xs"></i>
+            <span>Wallets & Accounts Balance (ওয়ালেট ও ব্যাংক)</span>
+          </h3>
+          <button type="button" onclick="window.app.switchTab('wallets')" class="text-xs text-blue-600 dark:text-blue-400 hover:underline font-semibold">
+            Manage Wallets
+          </button>
+        </div>
+        <div id="dashboardWalletBreakdown" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: DEDICATED LOAN & DEBT LEDGER (ধার দেনা) -->
+    <!-- ========================================== -->
+    <section id="tab-loans" class="tab-view hidden space-y-5">
+      
+      <!-- Ledger Summary Banner -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-5 rounded-full bg-blue-600"></span>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                ধার-দেনার খাতা • Loan & Debt Ledger
+              </h2>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Track net balances per counterparty with 1-click partial or full debt settlement.
+            </p>
+          </div>
+
+          <!-- Total Debt Position Badges -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <div class="px-3.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
+              <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold block">You are Owed (পাওনা):</span>
+              <span id="loanSummaryToCollect" class="text-sm sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400">৳ 0</span>
+            </div>
+
+            <div class="px-3.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">
+              <span class="text-[10px] text-amber-700 dark:text-amber-400 font-semibold block">You Owe (দেনা):</span>
+              <span id="loanSummaryToRepay" class="text-sm sm:text-base font-extrabold text-amber-600 dark:text-amber-400">৳ 0</span>
+            </div>
+
+            <div id="loanSummaryNetPosition" class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-750 border border-slate-200 dark:border-slate-700 text-xs">
+              <!-- Net Position Rendered -->
+            </div>
+
+            <button 
+              type="button" 
+              onclick="window.transactionManager.openAddModal({ type: 'lent' })"
+              class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm transition active:scale-95 flex items-center gap-1.5"
+            >
+              <i class="fa-solid fa-plus text-xs"></i> Add Loan
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3">
+          
+          <!-- Search Person Input -->
+          <div class="relative w-full sm:w-72">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-solid fa-magnifying-glass text-xs"></i>
+            </div>
+            <input 
+              type="text" 
+              id="loanSearchInput" 
+              placeholder="Search person (নাম দিয়ে খুঁজুন)..." 
+              class="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+          </div>
+
+          <!-- Status Filter Tabs -->
+          <div class="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+            <button 
+              type="button" 
+              data-loan-filter="all" 
+              class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-sm transition whitespace-nowrap"
+            >
+              All People (সবাই)
+            </button>
+            <button 
+              type="button" 
+              data-loan-filter="owes_you" 
+              class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition whitespace-nowrap"
+            >
+              They Owe Me (পাওনা)
+            </button>
+            <button 
+              type="button" 
+              data-loan-filter="you_owe" 
+              class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition whitespace-nowrap"
+            >
+              I Owe Them (দেনা)
+            </button>
+            <button 
+              type="button" 
+              data-loan-filter="settled" 
+              class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition whitespace-nowrap"
+            >
+              Settled (হিসাব শেষ)
+            </button>
+
+            <!-- Export Debt CSV -->
+            <button 
+              type="button" 
+              onclick="window.appStore.exportLoanLedgerCSV()" 
+              class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center gap-1 whitespace-nowrap"
+              title="Download Debt Ledger CSV"
+            >
+              <i class="fa-solid fa-file-csv text-blue-500"></i> Export CSV
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- People Cards Grid -->
+      <div id="loanLedgerGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Dynamically rendered by loans.js -->
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: ALL TRANSACTIONS HISTORY & LEDGER -->
+    <!-- ========================================== -->
+    <section id="tab-transactions" class="tab-view hidden space-y-4">
+      
+      <!-- Table Controls & Filter Toolbar -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm space-y-3.5">
+        
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-receipt text-blue-600 text-xs sm:text-sm"></i>
+              <span>All Transactions Ledger (লেনদেন ইতিহাস)</span>
+            </h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Search, filter, edit, or export your financial history.</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button 
+              type="button" 
+              onclick="window.appStore.exportTransactionsCSV()" 
+              class="px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 rounded-xl transition flex items-center gap-1.5"
+            >
+              <i class="fa-solid fa-file-csv text-emerald-600"></i>
+              <span>Export CSV</span>
+            </button>
+
+            <button 
+              type="button" 
+              onclick="window.print()" 
+              class="px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 rounded-xl transition flex items-center gap-1.5"
+            >
+              <i class="fa-solid fa-print text-slate-500"></i>
+              <span>Print</span>
+            </button>
+
+            <button 
+              type="button" 
+              onclick="window.transactionManager.openAddModal()" 
+              class="px-3.5 py-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm transition flex items-center gap-1.5 active:scale-95"
+            >
+              <i class="fa-solid fa-plus text-xs"></i>
+              <span>Add Transaction</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Controls Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-700">
+          
+          <!-- Search box -->
+          <div class="sm:col-span-2 relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-solid fa-magnifying-glass text-xs"></i>
+            </div>
+            <input 
+              type="text" 
+              id="txnTableSearch" 
+              placeholder="Search note, person, amount..." 
+              class="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+          </div>
+
+          <!-- Type filter -->
+          <div>
+            <select 
+              id="txnFilterType" 
+              class="w-full py-1.5 px-3 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="all">All Types (সব ধরণ)</option>
+              <option value="income">Income (আয়)</option>
+              <option value="expense">Expense (ব্যয়)</option>
+              <option value="lent">Lent Money (ধার দেওয়া)</option>
+              <option value="borrowed">Borrowed (ঋণ নেওয়া)</option>
+              <option value="lent_repayment">Lent Repaid (ধার ফেরত)</option>
+              <option value="borrowed_repayment">Debt Repaid (ঋণ শোধ)</option>
+              <option value="loans_all">All Loans (ধার-দেনা সব)</option>
+            </select>
+          </div>
+
+          <!-- Category filter -->
+          <div>
+            <select 
+              id="txnFilterCategory" 
+              class="w-full py-1.5 px-3 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <!-- Populated by script -->
+            </select>
+          </div>
+
+          <!-- Wallet filter -->
+          <div>
+            <select 
+              id="txnFilterWallet" 
+              class="w-full py-1.5 px-3 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="all">All Wallets (সব ওয়ালেট)</option>
+              <option value="cash">Cash (নগদ)</option>
+              <option value="bkash">bKash (বিকাশ)</option>
+              <option value="nagad">Nagad (নগদ)</option>
+              <option value="bank">Bank (ব্যাংক)</option>
+              <option value="credit_card">Credit Card (কার্ড)</option>
+            </select>
+          </div>
+
+          <!-- Date Range filter -->
+          <div>
+            <select 
+              id="txnFilterDateRange" 
+              class="w-full py-1.5 px-3 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="all_time">All Time (সব সময়)</option>
+              <option value="today">Today (আজকে)</option>
+              <option value="this_week">This Week (এই সপ্তাহ)</option>
+              <option value="this_month">This Month (চলতি মাস)</option>
+              <option value="last_month">Last Month (গত মাস)</option>
+              <option value="custom">Custom Range...</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Custom Date Range inputs (hidden by default) -->
+        <div id="customDateRangeContainer" class="hidden flex items-center gap-2 pt-1 text-xs">
+          <span class="text-slate-500 font-medium">From:</span>
+          <input type="date" id="customDateStart" class="py-1 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+          <span class="text-slate-500 font-medium">To:</span>
+          <input type="date" id="customDateEnd" class="py-1 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+        </div>
+
+        <!-- Filter Stats Banner & Sort Selector -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+          <div id="filteredStatsBanner" class="w-full sm:w-auto">
+            <!-- Dynamically populated -->
+          </div>
+
+          <div class="flex items-center gap-2 text-xs">
+            <span class="text-slate-400">Sort:</span>
+            <select 
+              id="txnSortBy" 
+              class="py-1 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-700 border-0 text-xs font-medium text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="date_desc">Date (Newest)</option>
+              <option value="date_asc">Date (Oldest)</option>
+              <option value="amount_desc">Amount (Highest)</option>
+              <option value="amount_asc">Amount (Lowest)</option>
+            </select>
+            <span id="filteredTxnCount" class="text-slate-400 font-medium ml-2"></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Desktop Table View -->
+      <div class="hidden md:block bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 dark:bg-slate-850 text-slate-500 dark:text-slate-400 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200 dark:border-slate-700">
+                <th class="py-3 px-4">Date & Time</th>
+                <th class="py-3 px-4">Type</th>
+                <th class="py-3 px-4">Person / Details</th>
+                <th class="py-3 px-4">Category</th>
+                <th class="py-3 px-4">Wallet</th>
+                <th class="py-3 px-4 text-right">Amount</th>
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="transactionTableBody" class="divide-y divide-slate-100 dark:divide-slate-800">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Mobile Cards View -->
+      <div id="transactionMobileCards" class="md:hidden space-y-3">
+        <!-- Dynamically populated -->
+      </div>
+
+      <!-- Pagination Container -->
+      <div id="txnPaginationContainer" class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+        <!-- Rendered by transactions.js -->
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: WALLETS & ACCOUNTS OVERVIEW -->
+    <!-- ========================================== -->
+    <section id="tab-wallets" class="tab-view hidden space-y-5">
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <i class="fa-solid fa-wallet text-blue-600 text-sm"></i>
+            <span>Wallets & Accounts Balance (ওয়ালেট ব্যালেন্স)</span>
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Track real cash on hand, MFS balances (bKash, Nagad), and Bank funds.
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-750 border border-slate-200 dark:border-slate-700 text-xs">
+            <span class="text-slate-400 block text-[10px]">Total Available Balance:</span>
+            <span id="walletsTabTotalBalance" class="font-extrabold text-base text-slate-900 dark:text-white">৳ 0</span>
+          </div>
+          <button 
+            type="button" 
+            onclick="window.transactionManager.openAddModal()" 
+            class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm transition"
+          >
+            + Add Transaction
+          </button>
+        </div>
+      </div>
+
+      <!-- Wallet Detailed Cards Grid -->
+      <div id="detailedWalletsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Dynamically rendered by app.js -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL 1: TRANSACTION ENTRY & EDIT MODAL -->
+  <!-- ========================================== -->
+  <div id="transactionModal" style="display: none;" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 modal-backdrop overflow-y-auto">
+    <div onclick="event.stopPropagation()" class="bg-white dark:bg-slate-850 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-700 my-auto max-h-[90vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-750">
+        <h3 id="transactionModalTitle" class="text-base font-bold text-slate-900 dark:text-white flex items-center">
+          <i class="fa-solid fa-plus-circle text-blue-600 mr-2"></i> Add New Transaction
+        </h3>
+        <button 
+          type="button" 
+          onclick="window.transactionManager.closeModal()" 
+          class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg transition"
+        >
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Transaction Form -->
+      <form id="transactionForm" class="space-y-4 mt-4">
+        <input type="hidden" id="txnType" value="expense">
+
+        <!-- 1. Transaction Type Selector (4 Primary Types) -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+            Transaction Type (লেনদেনের ধরণ) <span class="text-rose-500">*</span>
+          </label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <!-- Income -->
+            <button 
+              type="button" 
+              data-type="income" 
+              class="txn-type-btn py-2 px-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+            >
+              <i class="fa-solid fa-arrow-down-left text-emerald-500"></i>
+              <span>Income (আয়)</span>
+            </button>
+            <!-- Expense -->
+            <button 
+              type="button" 
+              data-type="expense" 
+              class="txn-type-btn py-2 px-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+            >
+              <i class="fa-solid fa-arrow-up-right text-rose-500"></i>
+              <span>Expense (খরচ)</span>
+            </button>
+            <!-- Lent Money -->
+            <button 
+              type="button" 
+              data-type="lent" 
+              class="txn-type-btn py-2 px-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+            >
+              <i class="fa-solid fa-hand-holding-dollar text-blue-500"></i>
+              <span>Lent (ধার)</span>
+            </button>
+            <!-- Borrowed Money -->
+            <button 
+              type="button" 
+              data-type="borrowed" 
+              class="txn-type-btn py-2 px-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+            >
+              <i class="fa-solid fa-handshake-angle text-amber-500"></i>
+              <span>Borrowed (ঋণ)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Amount Input with BDT (৳) Currency -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label for="txnAmount" class="text-xs font-semibold text-slate-600 dark:text-slate-300">
+              Amount (পরিমাণ ৳) <span class="text-rose-500">*</span>
+            </label>
+            <div class="flex items-center gap-1">
+              <button type="button" data-amount="500" class="quick-amount-btn text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-750 text-slate-600 dark:text-slate-300 hover:bg-slate-200">+500</button>
+              <button type="button" data-amount="1000" class="quick-amount-btn text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-750 text-slate-600 dark:text-slate-300 hover:bg-slate-200">+1k</button>
+              <button type="button" data-amount="5000" class="quick-amount-btn text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-750 text-slate-600 dark:text-slate-300 hover:bg-slate-200">+5k</button>
+            </div>
+          </div>
+          <div class="relative rounded-xl shadow-sm">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 font-bold text-base">
+              ৳
+            </div>
+            <input 
+              type="number" 
+              id="txnAmount" 
+              step="any" 
+              min="0" 
+              required 
+              placeholder="0.00" 
+              class="w-full pl-8 pr-4 py-2.5 text-base font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+          </div>
+        </div>
+
+        <!-- 3. Person / Counterparty Name -->
+        <div id="txnPersonContainer">
+          <label id="txnPersonLabel" for="txnPerson" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+            Person / Counterparty Name (ব্যক্তির নাম) <span id="txnPersonRequiredStar" class="text-rose-500 hidden">*</span>
+          </label>
+          <div class="relative">
+            <input 
+              type="text" 
+              id="txnPerson" 
+              list="knownPeopleList"
+              placeholder="e.g. Rahim, Tanvir, Uncle..." 
+              class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+            <datalist id="knownPeopleList"></datalist>
+          </div>
+          <span class="text-[10px] text-slate-400 mt-0.5 block">Select an existing counterparty or type a new one</span>
+        </div>
+
+        <!-- 4. Source / Destination details -->
+        <div>
+          <label id="txnSourceDestLabel" for="txnSourceDest" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+            Source / Destination (কোথায় খরচ / কোথা থেকে আসল)
+          </label>
+          <input 
+            type="text" 
+            id="txnSourceDest" 
+            placeholder="e.g. Shwapno, Pathao, Salary..." 
+            class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+        </div>
+
+        <!-- 5. Payment Method & Category Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          
+          <!-- Payment Method / Wallet -->
+          <div>
+            <label for="txnWallet" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+              Payment Method / Wallet <span class="text-rose-500">*</span>
+            </label>
+            <select 
+              id="txnWallet" 
+              required 
+              class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <!-- Populated by script -->
+            </select>
+          </div>
+
+          <!-- Category Selector -->
+          <div>
+            <label for="txnCategory" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+              Category (ক্যাটাগরি) <span class="text-rose-500">*</span>
+            </label>
+            <select 
+              id="txnCategory" 
+              required 
+              class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <!-- Populated by script -->
+            </select>
+          </div>
+
+        </div>
+
+        <!-- 6. Date & Time Picker and Optional Due Date -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          
+          <!-- Date & Time Picker -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label for="txnDate" class="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Date & Time <span class="text-rose-500">*</span>
+              </label>
+              <button type="button" id="setNowDateTimeBtn" class="text-[10px] text-blue-600 dark:text-blue-400 hover:underline">Set to Now</button>
+            </div>
+            <input 
+              type="datetime-local" 
+              id="txnDate" 
+              required 
+              class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+          </div>
+
+          <!-- Due / Settlement Date -->
+          <div id="txnDueDateContainer">
+            <label for="txnDueDate" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+              Due / Settlement Date (পরিশোধের তারিখ)
+            </label>
+            <input 
+              type="date" 
+              id="txnDueDate" 
+              class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+          </div>
+
+        </div>
+
+        <!-- 7. Notes (Optional) -->
+        <div>
+          <label for="txnNotes" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+            Notes (বর্ণনা / মন্তব্য)
+          </label>
+          <textarea 
+            id="txnNotes" 
+            rows="2" 
+            placeholder="Add memo or details..." 
+            class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          ></textarea>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-750">
+          <button 
+            type="button" 
+            onclick="window.transactionManager.closeModal()" 
+            class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            class="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm active:scale-95 transition"
+          >
+            Save Transaction
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 2: SETTLE / REPAY LOAN MODAL -->
+  <!-- ========================================== -->
+  <div id="settleDebtModal" style="display: none;" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 modal-backdrop overflow-y-auto">
+    <div onclick="event.stopPropagation()" class="bg-white dark:bg-slate-850 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-700 my-auto">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-750">
+        <h3 id="settleModalTitle" class="text-base font-bold text-slate-900 dark:text-white">
+          Record Debt Settlement
+        </h3>
+        <button 
+          type="button" 
+          onclick="window.loanManager.closeSettleModal()" 
+          class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg transition"
+        >
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="settleDebtForm" class="space-y-4 mt-4">
+        <input type="hidden" id="settlePersonName" value="">
+        <input type="hidden" id="settleTypeInput" value="receive">
+
+        <!-- Counterparty Info Banner -->
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs text-slate-500 dark:text-slate-400">Counterparty:</span>
+            <span id="settlePersonDisplay" class="font-bold text-sm text-slate-900 dark:text-white"></span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-500 dark:text-slate-400">Current Outstanding:</span>
+            <span id="settleBalanceDisplay" class="font-bold text-sm text-blue-600 dark:text-blue-400"></span>
+          </div>
+        </div>
+
+        <div id="settleTypeDescription"></div>
+
+        <!-- Settlement Amount -->
+        <div>
+          <label for="settleAmountInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+            Settlement Amount (পরিশোধের পরিমাণ ৳) <span class="text-rose-500">*</span>
+          </label>
+          <input 
+            type="number" 
+            id="settleAmountInput" 
+            step="any" 
+            min="1" 
+            required 
+            class="w-full px-3.5 py-2 text-base font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+          <span class="text-[10px] text-slate-400 mt-1 block">You can enter a partial amount or keep the full balance</span>
+        </div>
+
+        <!-- Settle Wallet -->
+        <div>
+          <label for="settleWalletSelect" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+            Wallet / Method Used <span class="text-rose-500">*</span>
+          </label>
+          <select 
+            id="settleWalletSelect" 
+            required 
+            class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            <!-- Populated -->
+          </select>
+        </div>
+
+        <!-- Date -->
+        <div>
+          <label for="settleDateInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+            Settlement Date & Time <span class="text-rose-500">*</span>
+          </label>
+          <input 
+            type="datetime-local" 
+            id="settleDateInput" 
+            required 
+            class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+        </div>
+
+        <!-- Settlement Note -->
+        <div>
+          <label for="settleNotesInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+            Memo / Notes
+          </label>
+          <input 
+            type="text" 
+            id="settleNotesInput" 
+            placeholder="e.g. Paid via bKash personal" 
+            class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-750">
+          <button 
+            type="button" 
+            onclick="window.loanManager.closeSettleModal()" 
+            class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm active:scale-95 transition flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-check"></i>
+            <span>Confirm Settlement</span>
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 3: PERSON STATEMENT & HISTORY MODAL -->
+  <!-- ========================================== -->
+  <div id="personHistoryModal" style="display: none;" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 modal-backdrop overflow-y-auto">
+    <div onclick="event.stopPropagation()" class="bg-white dark:bg-slate-850 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-700 my-auto max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-750">
+        <div>
+          <h3 id="personHistoryName" class="text-base font-bold text-slate-900 dark:text-white"></h3>
+          <span class="text-xs text-slate-400">Complete loan & repayment statement</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="personHistoryStatus"></span>
+          <button 
+            type="button" 
+            onclick="window.loanManager.closePersonHistoryModal()" 
+            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg transition"
+          >
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Transaction List with this person -->
+      <div id="personHistoryList" class="mt-4 max-h-96 overflow-y-auto space-y-2.5 pr-1">
+        <!-- Rendered by loans.js -->
+      </div>
+
+      <div class="mt-5 pt-3 border-t border-slate-100 dark:border-slate-750 flex items-center justify-between">
+        <button 
+          onclick="window.print()" 
+          class="text-xs font-semibold text-slate-600 dark:text-slate-300 hover:underline flex items-center gap-1"
+        >
+          <i class="fa-solid fa-print"></i> Print Statement
+        </button>
+        <button 
+          type="button" 
+          onclick="window.loanManager.closePersonHistoryModal()" 
+          class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-750 rounded-xl"
+        >
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 4: DELETE CONFIRMATION MODAL -->
+  <!-- ========================================== -->
+  <div id="deleteConfirmModal" style="display: none;" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop">
+    <div onclick="event.stopPropagation()" class="bg-white dark:bg-slate-850 rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-200 dark:border-slate-700 my-auto">
+      <div class="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl mx-auto mb-3">
+        <i class="fa-solid fa-trash-can"></i>
+      </div>
+      <h4 class="text-base font-bold text-center text-slate-900 dark:text-white mb-2">Delete Transaction?</h4>
+      <p id="deleteConfirmDescription" class="text-xs text-center text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
+        Are you sure you want to delete this record? This action will adjust all associated balances.
+      </p>
+      <div class="flex items-center justify-center gap-2.5">
+        <button 
+          type="button" 
+          onclick="window.transactionManager.closeDeleteModal()" 
+          class="w-1/2 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-750 hover:bg-slate-200 rounded-xl transition"
+        >
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          onclick="window.transactionManager.confirmDelete()" 
+          class="w-1/2 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm transition active:scale-95"
+        >
+          Yes, Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 5: DATA MANAGEMENT & BACKUP MODAL -->
+  <!-- ========================================== -->
+  <div id="dataBackupModal" style="display: none;" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 modal-backdrop overflow-y-auto">
+    <div onclick="event.stopPropagation()" class="bg-white dark:bg-slate-850 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-700 my-auto">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-750">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <i class="fa-solid fa-database text-blue-600"></i>
+          <span>Data Storage & Backup</span>
+        </h3>
+        <button 
+          type="button" 
+          onclick="window.app.closeBackupModal()" 
+          class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg transition"
+        >
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="mt-4 space-y-4">
+        
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300">
+          <i class="fa-solid fa-shield-halved mr-1 text-blue-600"></i>
+          Data is stored 100% locally in your browser's private LocalStorage. Completely offline and secure.
+        </div>
+
+        <!-- Export CSV Section -->
+        <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Export Spreadsheets</h4>
+          <div class="grid grid-cols-2 gap-2">
+            <button 
+              type="button" 
+              onclick="window.appStore.exportTransactionsCSV()" 
+              class="py-2 px-3 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-650 transition flex items-center justify-center gap-2 shadow-sm"
+            >
+              <i class="fa-solid fa-file-csv text-emerald-500"></i> Transactions CSV
+            </button>
+            <button 
+              type="button" 
+              onclick="window.appStore.exportLoanLedgerCSV()" 
+              class="py-2 px-3 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-650 transition flex items-center justify-center gap-2 shadow-sm"
+            >
+              <i class="fa-solid fa-handshake text-blue-500"></i> Debt Ledger CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- JSON Full Backup & Restore -->
+        <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">JSON Backup & Restore</h4>
+          <div class="grid grid-cols-2 gap-2">
+            <button 
+              type="button" 
+              id="exportJsonBackupBtn" 
+              onclick="window.appStore.exportJSONBackup()"
+              class="py-2 px-3 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-650 transition flex items-center justify-center gap-2 shadow-sm"
+            >
+              <i class="fa-solid fa-download text-blue-500"></i> Download JSON
+            </button>
+
+            <label class="py-2 px-3 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-650 transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+              <i class="fa-solid fa-upload text-amber-500"></i> Restore JSON
+              <input type="file" id="importBackupFileInput" accept=".json" class="hidden">
+            </label>
+          </div>
+        </div>
+
+        <!-- Sample Demo & Data Reset -->
+        <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Sample Data & Reset</h4>
+          <div class="flex items-center gap-2">
+            <button 
+              type="button" 
+              id="resetDemoDataBtn" 
+              class="w-1/2 py-2 px-3 rounded-xl bg-slate-200 dark:bg-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-300 transition"
+            >
+              Reload Sample Data
+            </button>
+            <button 
+              type="button" 
+              id="clearAllDataBtn" 
+              class="w-1/2 py-2 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100 transition"
+            >
+              Clear All Data
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mobile Floating Action Button (FAB) -->
+  <button 
+    type="button" 
+    id="floatingAddBtn"
+    onclick="window.transactionManager.openAddModal()" 
+    class="md:hidden fixed right-4 bottom-18 z-40 w-12 h-12 rounded-full bg-blue-600 text-white shadow-lg flex items-center justify-center text-lg active:scale-90 transition-transform"
+    title="Add New Transaction"
+  >
+    <i class="fa-solid fa-plus"></i>
+  </button>
+
+  <!-- Mobile Bottom Sticky Navigation Bar -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 glass-header border-t border-slate-200 dark:border-slate-800 px-3 py-2 flex items-center justify-around text-[10px]">
+    <button data-nav-target="dashboard" class="mobile-nav-link flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 font-semibold">
+      <i class="fa-solid fa-chart-pie text-base mb-0.5"></i>
+      <span>Dashboard</span>
+    </button>
+    <button data-nav-target="loans" class="mobile-nav-link flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 font-medium">
+      <i class="fa-solid fa-handshake-simple text-base mb-0.5"></i>
+      <span>Loans</span>
+    </button>
+    <button data-nav-target="transactions" class="mobile-nav-link flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 font-medium">
+      <i class="fa-solid fa-receipt text-base mb-0.5"></i>
+      <span>History</span>
+    </button>
+    <button data-nav-target="wallets" class="mobile-nav-link flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 font-medium">
+      <i class="fa-solid fa-wallet text-base mb-0.5"></i>
+      <span>Wallets</span>
+    </button>
+  </nav>
+
+  <!-- Toast Notification Container (Placed safely at bottom-right, never blocking top header) -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-xs sm:max-w-sm w-full pointer-events-none"></div>
+
+  <!-- Scripts -->
+  <script src="js/state.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/loans.js"></script>
+  <script src="js/transactions.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- Service Worker Registration for PWA / APK -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => console.log('HishabNikash Service Worker Registered'))
+          .catch(err => console.log('SW registration error:', err));
+      });
+    }
+  </script>
+</body>
+</html>
